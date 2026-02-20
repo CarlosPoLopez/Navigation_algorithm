@@ -1,0 +1,13 @@
+# Ignorar el entorno virtual
+.venv/
+
+# Ignorar datos pesados
+*.csv
+*.pt
+*.pth
+
+# Ignorar archivos basura de VS Code y Jupyter
+.vscode/
+.ipynb_checkpoints/
+__pycache__/
+
