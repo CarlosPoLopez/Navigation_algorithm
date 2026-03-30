@@ -57,7 +57,7 @@ def FCTS(u, v, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv, F, plot_cada)
             print(f'Calculado t={t} y fotograma guardado.')          
     
     plt.ioff() # Apagamos el modo interactivo al final
-    plt.show()    
+    #plt.show()    
     
     return u,v
 

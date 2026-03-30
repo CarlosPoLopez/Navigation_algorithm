@@ -1,10 +1,11 @@
 import numpy as np
 import time
+import os
 from FCTS import FCTS
 
 N = 400
-T = 1000000
-plot_cada = 10000
+T = 800000
+plot_cada = 20000
 
 deltat = 0.001
 deltax = 0.09 
@@ -31,6 +32,7 @@ fin = time.time()
 print(f'Simulación terminada en {round((fin-inicio)/60, 2)}minutos')
 
 #Guardar datos
-np.save('estado_u_fase1.npy', u_final)  
-np.save('estado_v_fase1.npy', v_final)
+os.makedirs('Datos_uv', exist_ok=True)
+np.save('Datos_uv/estado_u_fase1.npy', u_final)  
+np.save('Datos_uv/estado_v_fase1.npy', v_final)
 print("¡Guardado! Archivos .npy generados listos para la Fase 2.")
