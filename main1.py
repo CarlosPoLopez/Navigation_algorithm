@@ -2,17 +2,6 @@ import numpy as np
 import time
 from FCTS import FCTS
 
-'''N = 100            
-T = 10000          
-plot_cada = 50     
-
-
-deltat = 0.002
-deltax = 0.25      
-epsilon, alpha, beta, Du, Dv, F = 10.0, 5.0, 0.1, 0.3, 0.3, 5.0, 0
-
-u_min, u_max, v_min, v_max = -0.6505, 0.7526, -0.3752, 0.3263'''
-
 N = 400
 T = 1000000
 plot_cada = 10000
