@@ -4,30 +4,24 @@ import os
 from FCTS import FCTS
 
 N = 400
-T = 1000000
-plot_cada = 10000   
-
+T = 700000
+plot_cada = 20000 
+fase = 2
 
 deltat = 0.002
 deltax = 0.25      
-epsilon, alpha, beta, Du, Dv, F = 10.0, 5.0, 0.1, 0.3, 0.3, 5.0, 0
+epsilon, alpha, beta, Du, Dv, F = 10.0, 5.0, 0.1, 0.3, 5.0, 0
 
 u_min, u_max, v_min, v_max = -0.6505, 0.7526, -0.3752, 0.3263
 
 #Matrices u y v al inicio de la simulación
-u_inicial = np.full((N+1, N+1), u_min)
-v_inicial = np.full((N+1,N+1), v_min)
-
-#Estado estable en las esquinas (el menos estable en esta segunda fase, inicio y final del laberinto)
-u_inicial[1:6, 1:6] = u_max
-u_inicial[N-6:N, N-6:N] = u_max
-v_inicial[1:6, 1:6] = v_max
-v_inicial[N-6:N, N-6:N] = v_max
+u_inicial = np.load('Datos_uv/estado_u_fase1.npy')
+v_inicial = np.load('Datos_uv/estado_v_fase1.npy')
 
 
 inicio = time.time()
 
-u_final , v_final = FCTS(u_inicial, v_inicial, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv, F, plot_cada)
+u_final , v_final = FCTS(u_inicial, v_inicial, u_max, v_max, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv, F, plot_cada, fase)
 
 fin = time.time()
 print(f'Simulación terminada en {round((fin-inicio)/60, 2)}minutos')

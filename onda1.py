@@ -6,6 +6,7 @@ from FCTS import FCTS
 N = 400
 T = 800000
 plot_cada = 20000
+fase = 1
 
 deltat = 0.001
 deltax = 0.09 
@@ -26,7 +27,7 @@ v_inicial[N-6:N, N-6:N] = v_max
 
 inicio = time.time()
 
-u_final , v_final = FCTS(u_inicial, v_inicial, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv, F, plot_cada)
+u_final , v_final = FCTS(u_inicial, v_inicial, u_max, v_max, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv, F, plot_cada, fase)
 
 fin = time.time()
 print(f'Simulación terminada en {round((fin-inicio)/60, 2)}minutos')

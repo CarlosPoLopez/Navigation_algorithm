@@ -28,8 +28,9 @@ def generar_laberinto(L=203, l=25, n=0.67):
     return A
 
 # Generar y mostrar
-lab = generar_laberinto()
-plt.figure(figsize=(8,8))
-plt.pcolormesh(lab, cmap='binary')
-plt.axis('off')
-plt.show()
+if __name__ == '__main__':
+    lab = generar_laberinto()
+    plt.figure(figsize=(8,8))
+    plt.pcolormesh(lab, cmap='binary')
+    plt.axis('off')
+    plt.show()
