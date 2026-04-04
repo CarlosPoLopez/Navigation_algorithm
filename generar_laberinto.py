@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def generar_laberinto(L=203, l=25, n=0.67):
+#L=203, l=25, n=0.67
+
+def generar_laberinto(L, l, n):
     muro = 3
     A = np.zeros((L, L))
 

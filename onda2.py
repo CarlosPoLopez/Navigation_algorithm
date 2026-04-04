@@ -11,6 +11,7 @@ fase = 2
 deltat = 0.002
 deltax = 0.25      
 epsilon, alpha, beta, Du, Dv, F = 10.0, 5.0, 0.1, 0.3, 5.0, 0
+F_matriz = np.full((N+1, N+1), F)
 
 u_min, u_max, v_min, v_max = -0.6505, 0.7526, -0.3752, 0.3263
 
@@ -21,7 +22,7 @@ v_inicial = np.load('Datos_uv/estado_v_fase1.npy')
 
 inicio = time.time()
 
-u_final , v_final = FCTS(u_inicial, v_inicial, u_max, v_max, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv, F, plot_cada, fase)
+u_final , v_final = FCTS(u_inicial, v_inicial, u_max, v_max, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv, F_matriz, plot_cada, fase)
 
 fin = time.time()
 print(f'Simulación terminada en {round((fin-inicio)/60, 2)}minutos')

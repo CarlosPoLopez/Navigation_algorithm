@@ -2,16 +2,19 @@ import numpy as np
 import time
 import os
 from FCTS import FCTS
+from generar_laberinto import generar_laberinto
 
 N = 400
 T = 800000
 plot_cada = 20000
 fase = 1
+matriz_laberinto = generar_laberinto(L=N+1, l=25, n=0.67)
 
 deltat = 0.001
 deltax = 0.09 
-epsilon, alpha, beta, Du, Dv, F= 10.0, 8.0, -0.33, 0.05, 2.0, 0
-F_matriz = np.full((N+1, N+1), F)
+epsilon, alpha, beta, Du, Dv, F_pasillo, F_pared = 10.0, 8.0, -0.33, 0.05, 2.0, 0, -3.0
+
+F_matriz = np.where(matriz_laberinto == 1, F_pared, F_pasillo)
 
 u_min, u_max, v_min, v_max = -0.9109, 0.9581, -0.1551, 0.0785   
 

@@ -25,13 +25,14 @@ def FCTS(u, v, u_max, v_max, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv,
             # Definimos todo menos los bordes, equivalente a range(1,N)
             u_c = u[1:N, 1:N]
             v_c = v[1:N, 1:N]
+            F_c = F[1:N, 1:N]
 
             # Laplacianos vectorizados 
             lap_u = (u[2:N+1, 1:N] + u[0:N-1, 1:N] + u[1:N, 2:N+1] + u[1:N, 0:N-1] - 4*u_c) / deltax**2
             lap_v = (v[2:N+1, 1:N] + v[0:N-1, 1:N] + v[1:N, 2:N+1] + v[1:N, 0:N-1] - 4*v_c) / deltax**2
 
             # Actualización de las matrices interiores 
-            u_new[1:N, 1:N] = u_c + deltat * (epsilon * (u_c - u_c**3 - v_c + F) + Du * lap_u)
+            u_new[1:N, 1:N] = u_c + deltat * (epsilon * (u_c - u_c**3 - v_c + F_c) + Du * lap_u)
             v_new[1:N, 1:N] = v_c + deltat * (u_c - alpha * v_c + beta + Dv * lap_v)
 
             #Condiciones de Neumann (Zero-Flux)
@@ -70,13 +71,14 @@ def FCTS(u, v, u_max, v_max, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv,
             # Definimos todo menos los bordes, equivalente a range(1,N)
             u_c = u[1:N, 1:N]
             v_c = v[1:N, 1:N]
+            F_c = F[1:N, 1:N]
 
             # Laplacianos vectorizados 
             lap_u = (u[2:N+1, 1:N] + u[0:N-1, 1:N] + u[1:N, 2:N+1] + u[1:N, 0:N-1] - 4*u_c) / deltax**2
             lap_v = (v[2:N+1, 1:N] + v[0:N-1, 1:N] + v[1:N, 2:N+1] + v[1:N, 0:N-1] - 4*v_c) / deltax**2
 
             # Actualización de las matrices interiores 
-            u_new[1:N, 1:N] = u_c + deltat * (epsilon * (u_c - u_c**3 - v_c + F) + Du * lap_u)
+            u_new[1:N, 1:N] = u_c + deltat * (epsilon * (u_c - u_c**3 - v_c + F_c) + Du * lap_u)
             v_new[1:N, 1:N] = v_c + deltat * (u_c - alpha * v_c + beta + Dv * lap_v)
 
             #Condiciones de Neumann (Zero-Flux)
@@ -92,10 +94,10 @@ def FCTS(u, v, u_max, v_max, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv,
 
             #CONDICIONES DE DIRICHLET PARA LOS EXTREMOS
 
-            u_new[1:6, 1:6] = u_max
-            u_new[N-6:N, N-6:N] = u_max
-            v_new[1:6, 1:6] = v_max
-            v_new[N-6:N, N-6:N] = v_max
+            u_new[1:20, 1:20] = u_max
+            u_new[N-20:N, N-20:N] = u_max
+            v_new[1:20, 1:20] = v_max
+            v_new[N-20:N, N-20:N] = v_max
 
             #Guardo u y v
             u = np.copy(u_new)  
