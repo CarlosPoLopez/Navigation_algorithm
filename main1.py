@@ -5,14 +5,15 @@ from FCTS import FCTS
 from generar_laberinto import generar_laberinto
 
 N = 400
-T = 800000
-plot_cada = 20000
+L = N + 1
+T = 900000
+plot_cada = 40000
 fase = 1
-matriz_laberinto = generar_laberinto(L=N+1, l=25, n=0.67)
+matriz_laberinto = generar_laberinto(L, l=70, n=0.68)
 
 deltat = 0.001
 deltax = 0.09 
-epsilon, alpha, beta, Du, Dv, F_pasillo, F_pared = 10.0, 8.0, -0.33, 0.05, 2.0, 0, -3.0
+epsilon, alpha, beta, Du, Dv, F_pasillo, F_pared = 10.0, 8.0, -0.33, 0.05, 2.3, 0, -3.0
 
 F_matriz = np.where(matriz_laberinto == 1, F_pared, F_pasillo)
 
@@ -23,21 +24,20 @@ u_inicial = np.full((N+1, N+1), u_min)
 v_inicial = np.full((N+1,N+1), v_min)
 
 #Estado estable en las esquinas (de ahí surgen las autoondas, inicio y final del laberinto)
-u_inicial[1:6, 1:6] = u_max
-u_inicial[N-6:N, N-6:N] = u_max
-v_inicial[1:6, 1:6] = v_max
-v_inicial[N-6:N, N-6:N] = v_max
+u_inicial[5:45, 5:45] = u_max
+v_inicial[5:45, 5:45] = v_max
 
 
 inicio = time.time()
 
-u_final , v_final = FCTS(u_inicial, v_inicial, u_max, v_max, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv, F_matriz, plot_cada, fase)
+u_final , v_final = FCTS(u_inicial, v_inicial, u_max, v_max, u_min, v_min, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv, F_matriz, plot_cada, fase)
 
 fin = time.time()
 print(f'Simulación terminada en {round((fin-inicio)/60, 2)}minutos')
 
 #Guardar datos
-os.makedirs('Datos_uv', exist_ok=True)
-np.save('Datos_uv/estado_u_fase1.npy', u_final)  
-np.save('Datos_uv/estado_v_fase1.npy', v_final)
+os.makedirs('Matrices_ida', exist_ok=True)
+np.save('Matrices_ida/estado_u_ida.npy', u_final)  
+np.save('Matrices_ida/estado_v_ida.npy', v_final)
+np.save('Matrices_ida/matriz_F_laberinto.npy', F_matriz)
 print("¡Guardado! Archivos .npy generados listos para la Fase 2.")

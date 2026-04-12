@@ -20,15 +20,15 @@ u_inicial = np.full((N+1, N+1), u_min)
 v_inicial = np.full((N+1,N+1), v_min)
 
 #Estado estable en las esquinas (de ahí surgen las autoondas, inicio y final del laberinto)
-u_inicial[1:6, 1:6] = u_max
-u_inicial[N-6:N, N-6:N] = u_max
-v_inicial[1:6, 1:6] = v_max
-v_inicial[N-6:N, N-6:N] = v_max
+u_inicial[10:20, 10:20] = u_max
+u_inicial[N-20:N-10, N-20:N-10] = u_max
+v_inicial[10:20, 10:20] = v_max
+v_inicial[N-20:N-10, N-20:N-10] = v_max
 
 
 inicio = time.time()
 
-u_final , v_final = FCTS(u_inicial, v_inicial, u_max, v_max, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv, F_matriz, plot_cada, fase)
+u_final , v_final = FCTS(u_inicial, v_inicial, u_max, v_max, u_min, v_min, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv, F_matriz, plot_cada, fase)
 
 fin = time.time()
 print(f'Simulación terminada en {round((fin-inicio)/60, 2)}minutos')

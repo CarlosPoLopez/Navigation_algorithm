@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #L=203, l=25, n=0.67
+#L=401, l=70, n=0.7
 
 def generar_laberinto(L, l, n):
     muro = 3
@@ -32,7 +33,7 @@ def generar_laberinto(L, l, n):
 # Generar y mostrar
 if __name__ == '__main__':
     lab = generar_laberinto()
-    plt.figure(figsize=(8,8))
+    plt.figure(figsize=(6,6))
     plt.pcolormesh(lab, cmap='binary')
     plt.axis('off')
     plt.show()
