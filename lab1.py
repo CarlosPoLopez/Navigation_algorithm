@@ -2,19 +2,19 @@ import numpy as np
 import time
 import os
 from bucle import dufort_frankel
-from generar_laberinto import generar_laberinto_3
+from generar_laberinto import generar_laberinto
 
 
 N = 500
 L = N + 1
-T = 900000
+T = 820000
 plot_cada = 20000
 fase = 1
-matriz_laberinto = generar_laberinto_3()
+matriz_laberinto = generar_laberinto(L, l=95, n=0.67)
 
 deltat = 0.002 
 deltax = 0.09
-epsilon, alpha, beta, Du, Dv, F_pasillo, F_pared = 10.0, 8.0, -0.33, 0.05, 2.0, 0, -3.0
+epsilon, alpha, beta, Du, Dv, F_pasillo, F_pared = 10.0, 8.0, -0.33, 0.05, 4.0, 0, -3.0
 F_matriz = np.where(matriz_laberinto == 1, F_pared, F_pasillo)
 
 u_min, u_max, v_min, v_max = -0.9109, 0.9581, -0.1551, 0.0785   
@@ -25,8 +25,8 @@ v_inicial = np.full((N+1,N+1), v_min)
 
 
 #Estado estable en las esquinas (de ahí surgen las autoondas, inicio y final del laberinto)
-u_inicial[5:45, 5:45] = u_max
-v_inicial[5:45, 5:45] = v_max
+u_inicial[5:55, 5:55] = u_max
+v_inicial[5:55, 5:55] = v_max
 
 
 inicio = time.time()

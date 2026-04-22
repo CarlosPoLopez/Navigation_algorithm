@@ -1,16 +1,16 @@
 import numpy as np
 import time
 import os
-from bucle import dufort_frankel
+from bucle import FCTS
 
 N = 500
-T = 900000
+T = 800000
 plot_cada = 20000 
 fase = 2
 
 deltat = 0.002
 deltax = 0.25      
-epsilon, alpha, beta, Du, Dv = 10.0, 5.0, 0.1, 0.5, 5.0
+epsilon, alpha, beta, Du, Dv = 10.0, 5.0, 0.1, 1, 5.0
 F_matriz = np.load('Matrices_ida/matriz_F_laberinto.npy')
 
 """ u_min, u_max, v_min, v_max = -0.6505, 0.7526, -0.3752, 0.3263 """
@@ -23,7 +23,7 @@ v_inicial = np.load('Matrices_ida/estado_v_ida.npy')
 
 inicio = time.time()
 
-u_final , v_final = dufort_frankel(u_inicial, v_inicial, u_max, v_max, u_min, v_min, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv, F_matriz, plot_cada, fase)
+u_final , v_final = FCTS(u_inicial, v_inicial, u_max, v_max, u_min, v_min, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv, F_matriz, plot_cada, fase)
 
 fin = time.time()
 print(f'Simulación terminada en {round((fin-inicio)/60, 2)}minutos')
