@@ -22,8 +22,7 @@ def FCTS(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T, epsilon, alpha,
     ax.imshow(overlay_muro, origin='lower')
 
     if fase == 1:
-        #carpeta_salida = 'Plots_1.2'
-        carpeta_salida = 'LAB_ida'
+        carpeta_salida = 'LAB_ida' 
         os.makedirs(carpeta_salida, exist_ok=True)
 
         #Bucle

@@ -3,8 +3,8 @@ import time
 import os
 from FCTS import FCTS
 
-N = 400
-T = 800000
+N = 500
+T = 1000000
 plot_cada = 20000
 fase = 1
 
@@ -20,10 +20,10 @@ u_inicial = np.full((N+1, N+1), u_min)
 v_inicial = np.full((N+1,N+1), v_min)
 
 #Estado estable en las esquinas (de ahí surgen las autoondas, inicio y final del laberinto)
-u_inicial[10:20, 10:20] = u_max
-u_inicial[N-20:N-10, N-20:N-10] = u_max
-v_inicial[10:20, 10:20] = v_max
-v_inicial[N-20:N-10, N-20:N-10] = v_max
+u_inicial[5:45, 5:45] = u_max
+u_inicial[N-45:N-5, N-45:N-5] = u_max
+v_inicial[5:45, 5:45] = v_max
+v_inicial[N-45:N-5, N-45:N-5] = v_max
 
 
 inicio = time.time()

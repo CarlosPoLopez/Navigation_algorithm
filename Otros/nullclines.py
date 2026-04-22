@@ -10,12 +10,12 @@ def g(u, alpha, beta):
 u = np.linspace(-1, 1)
 
 F = 0
-alpha = 8
-beta = -0.33
+""" alpha = 8
+beta = -0.33 """
 
 
-""" alpha = 5
-beta = 0.1 """
+alpha = 5
+beta = 0.1
 
 
 f = f(u, F)

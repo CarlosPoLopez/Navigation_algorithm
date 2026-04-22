@@ -1,29 +1,29 @@
 import numpy as np
 import time
 import os
-from FCTS import FCTS
+from bucle import dufort_frankel
 
-N = 400
-T = 1200000
+N = 500
+T = 900000
 plot_cada = 20000 
 fase = 2
 
 deltat = 0.002
 deltax = 0.25      
-epsilon, alpha, beta, Du, Dv, F = 10.0, 5.0, 0.1, 0.3, 5.0, 0
-F_matriz = np.load('Datos_uv/matriz_F_laberinto.npy')
+epsilon, alpha, beta, Du, Dv = 10.0, 5.0, 0.1, 0.5, 5.0
+F_matriz = np.load('Matrices_ida/matriz_F_laberinto.npy')
 
 """ u_min, u_max, v_min, v_max = -0.6505, 0.7526, -0.3752, 0.3263 """
 u_min, u_max, v_min, v_max = -0.6505, 0.877, -0.3752, 0.197
 
 #Matrices u y v al inicio de la simulación
-u_inicial = np.load('Datos_uv/estado_u_fase1.npy')
-v_inicial = np.load('Datos_uv/estado_v_fase1.npy')
+u_inicial = np.load('Matrices_ida/estado_u_ida.npy')
+v_inicial = np.load('Matrices_ida/estado_v_ida.npy')
 
 
 inicio = time.time()
 
-u_final , v_final = FCTS(u_inicial, v_inicial, u_max, v_max, u_min, v_min, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv, F_matriz, plot_cada, fase)
+u_final , v_final = dufort_frankel(u_inicial, v_inicial, u_max, v_max, u_min, v_min, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv, F_matriz, plot_cada, fase)
 
 fin = time.time()
 print(f'Simulación terminada en {round((fin-inicio)/60, 2)}minutos')
