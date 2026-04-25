@@ -3,14 +3,16 @@ import time
 import os
 from bucle import dufort_frankel
 from generar_laberinto import generar_laberinto
+from generar_laberinto import generar_laberinto_3
 
 
 N = 500
 L = N + 1
-T = 820000
+T = 800000
 plot_cada = 20000
 fase = 1
-matriz_laberinto = generar_laberinto(L, l=95, n=0.67)
+matriz_laberinto = generar_laberinto_3()
+#matriz_laberinto = generar_laberinto(L, l=85, n=0.67)
 
 deltat = 0.002 
 deltax = 0.09

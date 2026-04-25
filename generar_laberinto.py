@@ -31,8 +31,8 @@ def generar_laberinto(L, l, n, grosor=4):
     return A
 
 def generar_laberinto_1():
-    dimx = 401
-    canal = 50
+    dimx = 501
+    canal = 55
     aa = np.zeros((dimx, dimx))
     
     # Python empieza en 0. MATLAB i=canal+1 -> Python i=canal
@@ -53,8 +53,8 @@ def generar_laberinto_1():
 
 def generar_laberinto_2():
     dimx = 501
-    canal = 30
-    extra = 1
+    canal = 55
+    extra = 5
     peso = -0.30
     aa = np.zeros((dimx, dimx))
     
@@ -76,9 +76,9 @@ def generar_laberinto_2():
 
 def generar_laberinto_3():
     dimx = 501
-    canal = 50
+    canal = 65
     extra = 0
-    peso = -0.25
+    peso = -0.2
     aa = np.zeros((dimx, dimx))
     
     numerosi = np.zeros((dimx, dimx))
@@ -99,13 +99,13 @@ def generar_laberinto_3():
     for i in range(0, dimx - canal, canal):
         for j in range(0, dimx - canal, canal):
             if numerosi[i, j] == 1:
-                aa[i:i+3, j:j+canal+extra] = 1
+                aa[i:i+4, j:j+canal+extra] = 1
             if numerosb[i, j] == 1:
-                aa[i:i+canal+extra, j:j+3] = 1
+                aa[i:i+canal+extra, j:j+4] = 1
             if numerosd[i, j] == 1:
-                aa[i+canal:i+canal+3, j:j+canal+extra] = 1
+                aa[i+canal:i+canal+4, j:j+canal+extra] = 1
             if numerosr[i, j] == 1:
-                aa[i:i+canal+extra, j+canal:j+canal+3] = 1
+                aa[i:i+canal+extra, j+canal:j+canal+4] = 1
                 
     aa[:, :3] = 1
     aa[:, -3:] = 1
@@ -116,8 +116,8 @@ def generar_laberinto_3():
     return aa
 
 def generar_laberinto_4():
-    dimx = 803
-    canal = 40
+    dimx = 501
+    canal = 50
     extra = 1
     peso = 0.50
     aa = np.zeros((dimx, dimx))
@@ -142,8 +142,9 @@ def generar_laberinto_4():
     return aa
 
 
+
 if __name__ == '__main__':
-    #lab = generar_laberinto(L=501, l=95, n=0.67, grosor=4)
+    #lab = generar_laberinto(L=501, l=75, n=0.67, grosor=4)
     lab = generar_laberinto_3()
     plt.figure(figsize=(6,6))
     plt.pcolormesh(lab, cmap='binary')

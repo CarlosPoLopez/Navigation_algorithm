@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-def bucle(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv, F, plot_cada, fase):
+def dufort_frankel(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T, epsilon, alpha, beta, Du, Dv, F, plot_cada, fase):
 
     u_new = np.copy(u)
     v_new = np.copy(v)
@@ -24,7 +24,7 @@ def bucle(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T, epsilon, alpha
     overlay_muro[es_pared] = [0.8, 0.8, 0.8, 0.8]
     ax.imshow(overlay_muro, origin='lower')
 
-    carpeta_salida = 'LAB_ida' if fase == 1 else 'LAB_vuelta'
+    carpeta_salida = 'Plots_ida' if fase == 1 else 'Plots_vuelta'
     os.makedirs(carpeta_salida, exist_ok=True)
 
 
@@ -95,7 +95,6 @@ def FCTS(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T, epsilon, alpha,
     v_new = np.copy(v)
 
     #Configuración plots
-    #plt.ion()
     plt.ioff()
     fig, ax = plt.subplots(figsize = (6,6))
     imagen = ax.imshow(u, cmap='magma', vmin=-1.5, vmax=1.5, origin='lower')
@@ -156,8 +155,6 @@ def FCTS(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T, epsilon, alpha,
             plt.savefig(ruta_archivo)
             print(f'Calculado t={t} y fotograma guardado.')          
         
-    #plt.ioff() # Apagamos el modo interactivo al final
-    #plt.show()
 
         
     

@@ -4,7 +4,7 @@ import os
 from bucle import FCTS
 
 N = 500
-T = 800000
+T = 180000
 plot_cada = 20000 
 fase = 2
 
