@@ -2,14 +2,14 @@
 
 Este proyecto implementa una simulación numérica en Python del modelo de reacción-difusión de **FitzHugh-Nagumo (FHN)**. El sistema utiliza la interacción entre un activador y un inhibidor para inundar un laberinto y, posteriormente, identificar el camino más corto mediante un proceso de retracción elástica.
 
-## 🧪 Contexto Científico
+##  Contexto Científico
 
 La simulación resuelve las ecuaciones diferenciales parciales del modelo FHN:
 * **Variable $u$ (Activador):** Define el frente de la onda que avanza por los pasillos.
 * **Variable $v$ (Inhibidor):** Genera el "escudo repulsor" que evita el colapso de frentes adyacentes, permitiendo que la onda mantenga una estructura central (esqueleto).
 * **Matriz $F$:** Representa la geometría del laberinto, actuando como un término de fuerza que apaga la variable activadora en las paredes.
 
-## 📂 Estructura del Proyecto
+##  Estructura del Proyecto
 
 El repositorio está organizado de la siguiente manera:
 
@@ -22,7 +22,7 @@ El repositorio está organizado de la siguiente manera:
     * `onda1.py` / `onda2.py`: Simulaciones de colisión de ondas simples.
     * Datos de soporte técnico.
 
-## 🚀 Instalación y Uso
+##  Instalación y Uso
 
 1. **Requisitos**: Instala las dependencias necesarias:
    ```bash
