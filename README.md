@@ -1,13 +1,15 @@
 # Resolución de Laberintos mediante Sistemas de Reacción-Difusión (Modelo FitzHugh-Nagumo)
 
-Este proyecto implementa una simulación numérica en Python del modelo de reacción-difusión de **FitzHugh-Nagumo (FHN)**. El sistema utiliza la interacción entre un activador y un inhibidor para inundar un laberinto y, posteriormente, identificar el camino más corto mediante un proceso de retracción elástica.
+Este proyecto implementa una simulación numérica en Python del modelo de reacción-difusión de **FitzHugh-Nagumo (FHN)**. El sistema utiliza la difusión del estado más estable en el sistema para inundar el laberinto y, posteriormente, identificar el camino más corto mediante el cambio de estabilidad en el sistema.
+##  Contexto Básico
 
-##  Contexto Científico
+La simulación resuelve el siguiente sistema de ecuaciones diferenciales parciales:
 
-La simulación resuelve las ecuaciones diferenciales parciales del modelo FHN:
-* **Variable $u$ (Activador):** Define el frente de la onda que avanza por los pasillos.
-* **Variable $v$ (Inhibidor):** Genera el "escudo repulsor" que evita el colapso de frentes adyacentes, permitiendo que la onda mantenga una estructura central (esqueleto).
-* **Matriz $F$:** Representa la geometría del laberinto, actuando como un término de fuerza que apaga la variable activadora en las paredes.
+$$\frac{\partial u}{\partial t} = \epsilon (u - u^3 - v + F) + D_u \nabla^2 u$$
+$$\frac{\partial v}{\partial t} = (u - \alpha v + \beta) + D_v \nabla^2 v$$
+
+Donde:
+* **Matriz $F$:** Representa la geometría del laberinto, actuando como un término de fuerza que "apaga" la variable activadora en las paredes.
 
 ##  Estructura del Proyecto
 
@@ -15,8 +17,8 @@ El repositorio está organizado de la siguiente manera:
 
 * **`main_ida.py`**: Script para la **Fase 1 (Expansión)**. Genera el laberinto y lanza la onda desde el origen hasta la salida.
 * **`main_vuelta.py`**: Script para la **Fase 2 (Retracción)**. Carga el estado final de la Fase 1 y calcula el camino óptimo.
-* **`bucle.py`**: Motor numérico híbrido. Implementa los métodos de **Dufort-Frankel** (para una expansión estable y rápida) y **FTCS** (para una retracción suave y precisa).
-* **`generar_laberinto.py`**: Biblioteca con algoritmos para crear diferentes tipos de obstáculos y geometrías.
+* **`bucle.py`**: Motor numérico híbrido. Implementa los métodos de **Dufort-Frankel** (para la expansión) y **FTCS** (para la retracción).
+* **`generar_laberinto.py`**: Biblioteca con funciones para crear diferentes tipos de obstáculos y geometrías.
 * **`OTROS/`**: Carpeta con herramientas de análisis:
     * `nullclines.py`: Estudio de estabilidad del sistema.
     * `onda1.py` / `onda2.py`: Simulaciones de colisión de ondas simples.
