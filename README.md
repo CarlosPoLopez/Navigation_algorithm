@@ -1,4 +1,4 @@
-# Resolución de Laberintos mediante Autoondas (Modelo FitzHugh-Nagumo)
+# Resolución de Laberintos mediante Sistemas de Reacción-Difusión (Modelo FitzHugh-Nagumo)
 
 Este proyecto implementa una simulación numérica en Python del modelo de reacción-difusión de **FitzHugh-Nagumo (FHN)**. El sistema utiliza la interacción entre un activador y un inhibidor para inundar un laberinto y, posteriormente, identificar el camino más corto mediante un proceso de retracción elástica.
 
