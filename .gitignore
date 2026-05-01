@@ -11,3 +11,6 @@
 .ipynb_checkpoints/
 __pycache__/
 
+#Ignorar los scripts .sh para el CESGA
+Otros/.sh
+
