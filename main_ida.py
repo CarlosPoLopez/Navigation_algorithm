@@ -4,15 +4,60 @@ import os
 from bucle import dufort_frankel
 from generar_laberinto import generar_laberinto
 from generar_laberinto import generar_laberinto_3
+from collections import deque
 
+def laberinto_tiene_solucion(matriz, start, end):
+    """
+    Comprueba rápidamente si existe un camino de 0s (pasillos) 
+    entre el punto de inicio y el punto final.
+    """
+    N_filas, N_cols = matriz.shape
+    visitados = set()
+    cola = deque([start])
+    visitados.add(start)
+
+    # Movimientos permitidos: arriba, abajo, izquierda, derecha
+    direcciones = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    while cola:
+        x, y = cola.popleft()
+
+        # Si llegamos a la zona final, ¡es válido!
+        if (x, y) == end:
+            return True
+
+        for dx, dy in direcciones:
+            nx, ny = x + dx, y + dy
+            # Comprobamos que no nos salimos del mapa y que es pasillo (suponiendo que 0 es pasillo)
+            if 0 <= nx < N_filas and 0 <= ny < N_cols:
+                if matriz[nx, ny] == 0 and (nx, ny) not in visitados:
+                    visitados.add((nx, ny))
+                    cola.append((nx, ny))
+
+    # Si la cola se vacía y no hemos llegado, no hay solución
+    return False
 
 N = 500
 L = N + 1
 T = 800000
 plot_cada = 20000
 fase = 1
-matriz_laberinto = generar_laberinto_3()
-#matriz_laberinto = generar_laberinto(L, l=85, n=0.67)
+
+#Genera laberintos hasta que encuentre uno con salida
+intentos = 0
+while True:
+    intentos += 1
+    #matriz_laberinto = generar_laberinto_3()
+    matriz_laberinto = generar_laberinto(L, l=85, n=0.67, grosor=5)
+    
+    # Comprobamos un punto en la zona de inicio (ej. 30,30) y otro en el final (ej. N-30, N-30)
+    # Suponemos que en matriz_laberinto el valor 0 es pasillo y 1 es pared.
+    if laberinto_tiene_solucion(matriz_laberinto, start=(30, 30), end=(N-30, N-30)):
+        print(f"¡Laberinto válido encontrado al intento {intentos}!")
+        break # Salimos del bucle con un laberinto bueno
+    else:
+        # Si no hay solución, el bucle repite y genera otro distinto silenciosamente
+        pass
 
 deltat = 0.002 
 deltax = 0.09
