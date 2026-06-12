@@ -4,29 +4,29 @@ import matplotlib.pyplot as plt
 
 # ── Helper: exact grid size ──────────────────────────────────────────────────
 
-def dimx_exacto(nc, canal, grosor_pared=3):
+def exact_dimx(n_cells, cell_size, wall_thickness=3):
     """Return the exact array size so the cell grid fits with no leftover border.
 
     Parameters
     ----------
-    nc : int
+    n_cells : int
         Number of cells per side.
-    canal : int
+    cell_size : int
         Size of each cell in pixels.
-    grosor_pared : int
+    wall_thickness : int
         Wall thickness in pixels (default 3).
 
     Example
     -------
-    >>> dimx_exacto(nc=9, canal=60, grosor_pared=5)
+    >>> exact_dimx(n_cells=9, cell_size=60, wall_thickness=5)
     590
     """
-    return nc * (canal + grosor_pared) + grosor_pared
+    return n_cells * (cell_size + wall_thickness) + wall_thickness
 
 
 # ── Perfect maze (single path between any two cells) ─────────────────────────
 
-def generar_laberinto_perfecto(dimx=501, canal=50, grosor_pared=3, semilla=None):
+def generate_maze_perfect(dimx=501, cell_size=50, wall_thickness=3, seed=None):
     """Generate a perfect maze via iterative DFS backtracking.
 
     Guaranteed properties:
@@ -39,11 +39,11 @@ def generar_laberinto_perfecto(dimx=501, canal=50, grosor_pared=3, semilla=None)
     ----------
     dimx : int
         Size of the square output array (pixels).
-    canal : int
+    cell_size : int
         Inner size of each cell in pixels.
-    grosor_pared : int
+    wall_thickness : int
         Thickness of the walls between cells (and of the perimeter).
-    semilla : int, optional
+    seed : int, optional
         Seed for np.random (reproducibility).
 
     Returns
@@ -54,91 +54,91 @@ def generar_laberinto_perfecto(dimx=501, canal=50, grosor_pared=3, semilla=None)
     How it works
     ------------
     1. Start from an array completely filled with walls (all ones).
-    2. Lay out a grid of cells separated by walls of `grosor_pared`.
+    2. Lay out a grid of cells separated by walls of `wall_thickness`.
     3. The iterative DFS visits each cell exactly once and carves the corridor
        to its neighbour: it opens both the destination cell and the wall strip
        between them.
     4. Being a spanning tree, the resulting wall graph is connected and there
        are no floating walls.
     """
-    if semilla is not None:
-        np.random.seed(semilla)
+    if seed is not None:
+        np.random.seed(seed)
 
-    gp = grosor_pared
+    wt = wall_thickness
 
     # Number of cells that fit along each dimension
-    nc = (dimx - gp) // (canal + gp)
+    n_cells = (dimx - wt) // (cell_size + wt)
 
     # Adjust the cell size to fill as much space as possible inside dimx,
     # minimising the leftover offset (<= 1 px per side in practice).
-    canal = (dimx - gp * (nc + 1)) // nc
+    cell = (dimx - wt * (n_cells + 1)) // n_cells
 
     # Residual offset to centre any leftover pixels
-    dimx_real = nc * (canal + gp) + gp
+    dimx_real = n_cells * (cell + wt) + wt
     offset = (dimx - dimx_real) // 2
 
     # Pixel position of the top-left corner of cell (i, j)
     def px(k):
-        return offset + gp + k * (canal + gp)
+        return offset + wt + k * (cell + wt)
 
     # ── Initialise: everything is wall ──────────────────────────────────────
     aa = np.ones((dimx, dimx), dtype=int)
 
     # ── Iterative DFS ───────────────────────────────────────────────────────
-    visited = np.zeros((nc, nc), dtype=bool)
+    visited = np.zeros((n_cells, n_cells), dtype=bool)
 
     # Open the starting cell (0, 0)
     r0, c0 = 0, 0
-    aa[px(r0):px(r0) + canal, px(c0):px(c0) + canal] = 0
+    aa[px(r0):px(r0) + cell, px(c0):px(c0) + cell] = 0
     visited[r0, c0] = True
 
     stack = [(r0, c0)]
-    direcciones = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
     while stack:
         r, c = stack[-1]
 
         # Unvisited neighbours
-        vecinos = [
+        neighbors = [
             (r + dr, c + dc)
-            for dr, dc in direcciones
-            if 0 <= r + dr < nc and 0 <= c + dc < nc
+            for dr, dc in directions
+            if 0 <= r + dr < n_cells and 0 <= c + dc < n_cells
             and not visited[r + dr, c + dc]
         ]
 
-        if vecinos:
+        if neighbors:
             # Pick a random neighbour
-            nr, nc_ = vecinos[np.random.randint(len(vecinos))]
+            nr, ncol = neighbors[np.random.randint(len(neighbors))]
 
-            # ── Open the wall between (r,c) and (nr,nc_) ────────────────
+            # ── Open the wall between (r,c) and (nr,ncol) ───────────────
             if nr == r:          # same row -> vertical wall between columns
-                jmin = min(c, nc_)
-                aa[px(r):px(r) + canal, px(jmin) + canal:px(jmin) + canal + gp] = 0
+                jmin = min(c, ncol)
+                aa[px(r):px(r) + cell, px(jmin) + cell:px(jmin) + cell + wt] = 0
             else:                # same column -> horizontal wall between rows
                 imin = min(r, nr)
-                aa[px(imin) + canal:px(imin) + canal + gp, px(c):px(c) + canal] = 0
+                aa[px(imin) + cell:px(imin) + cell + wt, px(c):px(c) + cell] = 0
 
             # ── Open the destination cell ───────────────────────────────
-            aa[px(nr):px(nr) + canal, px(nc_):px(nc_) + canal] = 0
-            visited[nr, nc_] = True
-            stack.append((nr, nc_))
+            aa[px(nr):px(nr) + cell, px(ncol):px(ncol) + cell] = 0
+            visited[nr, ncol] = True
+            stack.append((nr, ncol))
         else:
             stack.pop()   # backtrack
 
     # ── Seal the perimeter ──────────────────────────────────────────────────
-    aa[:gp, :] = 1
-    aa[-gp:, :] = 1
-    aa[:, :gp] = 1
-    aa[:, -gp:] = 1
+    aa[:wt, :] = 1
+    aa[-wt:, :] = 1
+    aa[:, :wt] = 1
+    aa[:, -wt:] = 1
 
     return aa
 
 
 # ── Multi-route maze: N vertex-disjoint paths start -> end ───────────────────
 
-def generar_laberinto_multiruta(dimx=590, canal=60, grosor_pared=5,
-                                n_caminos=2, start_cell=None, end_cell=None,
-                                semilla=None):
+def generate_maze_multiroute(dimx=590, cell_size=60, wall_thickness=5,
+                             n_paths=2, start_cell=None, end_cell=None,
+                             seed=None):
     """Build a maze with N vertex-disjoint paths from start_cell to end_cell.
 
     This is the generator used to build the training dataset. The paths share
@@ -168,13 +168,13 @@ def generar_laberinto_multiruta(dimx=590, canal=60, grosor_pared=5,
 
     Parameters
     ----------
-    dimx, canal, grosor_pared : see generar_laberinto_perfecto.
-    n_caminos : int
+    dimx, cell_size, wall_thickness : see generate_maze_perfect.
+    n_paths : int
         Number of disjoint paths to build (default 2).
     start_cell, end_cell : tuple(int, int), optional
         (r, c) in the cell grid. Default: opposite corners (0, 0) and
-        (nc-1, nc-1).
-    semilla : int, optional
+        (n_cells-1, n_cells-1).
+    seed : int, optional
         Seed for np.random.
 
     Returns
@@ -183,175 +183,175 @@ def generar_laberinto_multiruta(dimx=590, canal=60, grosor_pared=5,
     """
     from collections import deque
 
-    if semilla is not None:
-        np.random.seed(semilla)
+    if seed is not None:
+        np.random.seed(seed)
 
-    gp = grosor_pared
-    nc = (dimx - gp) // (canal + gp)
-    canal_aj = (dimx - gp * (nc + 1)) // nc
-    dimx_real = nc * (canal_aj + gp) + gp
+    wt = wall_thickness
+    n_cells = (dimx - wt) // (cell_size + wt)
+    cell = (dimx - wt * (n_cells + 1)) // n_cells
+    dimx_real = n_cells * (cell + wt) + wt
     offset = (dimx - dimx_real) // 2
 
     def px(k):
-        return offset + gp + k * (canal_aj + gp)
+        return offset + wt + k * (cell + wt)
 
     if start_cell is None:
         start_cell = (0, 0)
     if end_cell is None:
-        end_cell = (nc - 1, nc - 1)
+        end_cell = (n_cells - 1, n_cells - 1)
 
     # Neighbours on the cell grid (4-connectivity)
-    def vecinos(rc):
+    def neighbors(rc):
         r, c = rc
         return [(r + dr, c + dc) for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]
-                if 0 <= r + dr < nc and 0 <= c + dc < nc]
+                if 0 <= r + dr < n_cells and 0 <= c + dc < n_cells]
 
     # 1) Find N vertex-disjoint paths. The first one is the shortest (BFS).
     #    The remaining ones are intentionally longer (randomised DFS with
     #    retries) so they act as distractors: the wave algorithm must pick the
     #    short one, the long ones are branches to discard.
-    def camino_bfs(bloqueados):
+    def path_bfs(blocked):
         parent = {start_cell: None}
-        cola = deque([start_cell])
-        while cola:
-            u = cola.popleft()
+        queue = deque([start_cell])
+        while queue:
+            u = queue.popleft()
             if u == end_cell:
                 break
-            vecs = [v for v in vecinos(u)
-                    if v not in parent and (v == end_cell or v not in bloqueados)]
-            np.random.shuffle(vecs)
-            for v in vecs:
+            cands = [v for v in neighbors(u)
+                     if v not in parent and (v == end_cell or v not in blocked)]
+            np.random.shuffle(cands)
+            for v in cands:
                 parent[v] = u
-                cola.append(v)
+                queue.append(v)
         if end_cell not in parent:
             return None
-        c = []
+        path = []
         cur = end_cell
         while cur is not None:
-            c.append(cur); cur = parent[cur]
-        return c[::-1]
+            path.append(cur); cur = parent[cur]
+        return path[::-1]
 
-    def camino_dfs(bloqueados):
+    def path_dfs(blocked):
         # Randomised DFS: tends to produce winding, long paths.
         parent = {start_cell: None}
-        visitado = {start_cell}
-        pila = [start_cell]
-        while pila:
-            u = pila[-1]
+        visited = {start_cell}
+        stack = [start_cell]
+        while stack:
+            u = stack[-1]
             if u == end_cell:
                 break
-            vecs = [v for v in vecinos(u)
-                    if v not in visitado and (v == end_cell or v not in bloqueados)]
-            np.random.shuffle(vecs)
-            if vecs:
-                v = vecs[0]
+            cands = [v for v in neighbors(u)
+                     if v not in visited and (v == end_cell or v not in blocked)]
+            np.random.shuffle(cands)
+            if cands:
+                v = cands[0]
                 parent[v] = u
-                visitado.add(v)
-                pila.append(v)
+                visited.add(v)
+                stack.append(v)
             else:
-                pila.pop()
+                stack.pop()
         if end_cell not in parent:
             return None
-        c = []
+        path = []
         cur = end_cell
         while cur is not None:
-            c.append(cur); cur = parent[cur]
-        return c[::-1]
+            path.append(cur); cur = parent[cur]
+        return path[::-1]
 
-    # For n_caminos=2 the first BFS may pick a route whose blocking separates
+    # For n_paths=2 the first BFS may pick a route whose blocking separates
     # start from end (e.g. a diagonal staircase touching both borders),
     # preventing the second path. Retry the first path several times until the
     # second (longer) one exists.
     min_extra = 6
-    caminos = []
+    paths = []
     for _outer in range(30):
-        p1 = camino_bfs(set())
+        p1 = path_bfs(set())
         if p1 is None:
             continue
-        bloqueados = set(p1[1:-1])
-        mejor_p2 = None
+        blocked = set(p1[1:-1])
+        best_p2 = None
         for _ in range(60):
-            c = camino_dfs(bloqueados)
-            if c is None:
+            p = path_dfs(blocked)
+            if p is None:
                 continue
-            if mejor_p2 is None or len(c) > len(mejor_p2):
-                mejor_p2 = c
-            if mejor_p2 is not None and len(mejor_p2) >= len(p1) + min_extra:
+            if best_p2 is None or len(p) > len(best_p2):
+                best_p2 = p
+            if best_p2 is not None and len(best_p2) >= len(p1) + min_extra:
                 break
-        if mejor_p2 is not None and len(mejor_p2) >= len(p1) + min_extra:
-            caminos = [p1, mejor_p2]
+        if best_p2 is not None and len(best_p2) >= len(p1) + min_extra:
+            paths = [p1, best_p2]
             break
-    if not caminos:
+    if not paths:
         # Could not get 2 paths with the minimum gap in 30 attempts.
         # Accept whatever we have (at least the short path).
-        p1 = camino_bfs(set())
-        caminos = [p1] if p1 is not None else []
+        p1 = path_bfs(set())
+        paths = [p1] if p1 is not None else []
         if p1 is not None:
-            bloqueados = set(p1[1:-1])
-            c = camino_dfs(bloqueados)
-            if c is not None:
-                caminos.append(c)
+            blocked = set(p1[1:-1])
+            p = path_dfs(blocked)
+            if p is not None:
+                paths.append(p)
 
-    # Extra paths (n_caminos > 2): only possible in graphs with a bottleneck
-    # > 2, which does not happen with opposite corners; ignored silently.
-    bloqueados = set()
-    for camino in caminos:
-        for c in camino[1:-1]:
-            bloqueados.add(c)
+    # Extra paths (n_paths > 2): only possible in graphs with a bottleneck > 2,
+    # which does not happen with opposite corners; ignored silently.
+    blocked = set()
+    for path in paths:
+        for c in path[1:-1]:
+            blocked.add(c)
 
     # Collect the cells that belong to some path
-    celdas_camino = set()
-    for camino in caminos:
-        celdas_camino.update(camino)
+    path_cells = set()
+    for path in paths:
+        path_cells.update(path)
 
     # 2) Build the empty maze (all walls) and open the paths
     aa = np.ones((dimx, dimx), dtype=int)
 
-    def abrir_celda(rc):
+    def open_cell(rc):
         r, c = rc
-        aa[px(r):px(r) + canal_aj, px(c):px(c) + canal_aj] = 0
+        aa[px(r):px(r) + cell, px(c):px(c) + cell] = 0
 
-    def abrir_pared(a, b):
+    def open_wall(a, b):
         ra, ca = a
         rb, cb = b
         if ra == rb:                                    # horizontal neighbours
             jmin = min(ca, cb)
-            aa[px(ra):px(ra) + canal_aj,
-               px(jmin) + canal_aj:px(jmin) + canal_aj + gp] = 0
+            aa[px(ra):px(ra) + cell,
+               px(jmin) + cell:px(jmin) + cell + wt] = 0
         else:                                           # vertical neighbours
             imin = min(ra, rb)
-            aa[px(imin) + canal_aj:px(imin) + canal_aj + gp,
-               px(ca):px(ca) + canal_aj] = 0
+            aa[px(imin) + cell:px(imin) + cell + wt,
+               px(ca):px(ca) + cell] = 0
 
-    for camino in caminos:
-        for cell in camino:
-            abrir_celda(cell)
-        for i in range(len(camino) - 1):
-            abrir_pared(camino[i], camino[i + 1])
+    for path in paths:
+        for cell_rc in path:
+            open_cell(cell_rc)
+        for i in range(len(path) - 1):
+            open_wall(path[i], path[i + 1])
 
     # 3) Fill the rest with dead-end trees hanging off the paths.
     #    Randomised DFS: the stack starts with all path cells and expands by
     #    visiting unvisited neighbours (without reconnecting distinct paths).
-    visitado = set(celdas_camino)
-    pila = list(celdas_camino)
-    np.random.shuffle(pila)
-    while pila:
-        u = pila[-1]
-        candidatos = [v for v in vecinos(u) if v not in visitado]
-        if candidatos:
-            v = candidatos[np.random.randint(len(candidatos))]
-            abrir_celda(v)
-            abrir_pared(u, v)
-            visitado.add(v)
-            pila.append(v)
+    visited = set(path_cells)
+    stack = list(path_cells)
+    np.random.shuffle(stack)
+    while stack:
+        u = stack[-1]
+        candidates = [v for v in neighbors(u) if v not in visited]
+        if candidates:
+            v = candidates[np.random.randint(len(candidates))]
+            open_cell(v)
+            open_wall(u, v)
+            visited.add(v)
+            stack.append(v)
         else:
-            pila.pop()
+            stack.pop()
 
     # 4) Seal the perimeter
-    aa[:gp, :] = 1
-    aa[-gp:, :] = 1
-    aa[:, :gp] = 1
-    aa[:, -gp:] = 1
+    aa[:wt, :] = 1
+    aa[-wt:, :] = 1
+    aa[:, :wt] = 1
+    aa[:, -wt:] = 1
 
     return aa
 
@@ -359,14 +359,14 @@ def generar_laberinto_multiruta(dimx=590, canal=60, grosor_pared=5,
 # ── Demo ─────────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
-    canal = 60
-    gp = 5
-    dimx = dimx_exacto(nc=9, canal=canal, grosor_pared=gp)
+    cell_size = 60
+    wall_thickness = 5
+    dimx = exact_dimx(n_cells=9, cell_size=cell_size, wall_thickness=wall_thickness)
     print(f'dimx = {dimx}')
 
     fig, ax = plt.subplots(figsize=(8, 8))
-    lab = generar_laberinto_multiruta(dimx=dimx, canal=canal,
-                                      grosor_pared=gp, n_caminos=2, semilla=0)
+    lab = generate_maze_multiroute(dimx=dimx, cell_size=cell_size,
+                                   wall_thickness=wall_thickness, n_paths=2, seed=0)
     ax.imshow(lab, cmap='binary', origin='lower')
     ax.axis('off')
     plt.tight_layout()

@@ -4,7 +4,7 @@ import os
 
 
 def dufort_frankel(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
-                   epsilon, alpha, beta, Du, Dv, F, plot_cada, fase):
+                   epsilon, alpha, beta, Du, Dv, F, plot_every, phase):
     """Integrate the FitzHugh-Nagumo system with the Dufort-Frankel scheme.
 
     Used in phase 1 (expansion): an autowave is launched from the start corner
@@ -28,9 +28,9 @@ def dufort_frankel(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
         FitzHugh-Nagumo kinetic and diffusion parameters.
     F : np.ndarray
         Forcing matrix encoding the maze geometry (negative on walls).
-    plot_cada : int
-        Save a frame every `plot_cada` steps.
-    fase : int
+    plot_every : int
+        Save a frame every `plot_every` steps.
+    phase : int
         Phase tag (1 = expansion); kept for symmetry with FTCS.
 
     Returns
@@ -50,16 +50,16 @@ def dufort_frankel(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
     # Plot setup
     plt.ioff()
     fig, ax = plt.subplots(figsize=(6, 6))
-    imagen = ax.imshow(u, cmap='magma', vmin=-1.5, vmax=1.5, origin='lower')
+    image = ax.imshow(u, cmap='magma', vmin=-1.5, vmax=1.5, origin='lower')
 
     # Draw the maze walls as an overlay
-    overlay_muro = np.zeros((N + 1, N + 1, 4))
-    es_pared = (F < 0)
-    overlay_muro[es_pared] = [0.8, 0.8, 0.8, 0.8]
-    ax.imshow(overlay_muro, origin='lower')
+    wall_overlay = np.zeros((N + 1, N + 1, 4))
+    is_wall = (F < 0)
+    wall_overlay[is_wall] = [0.8, 0.8, 0.8, 0.8]
+    ax.imshow(wall_overlay, origin='lower')
 
-    carpeta_salida = 'frames_ida'
-    os.makedirs(carpeta_salida, exist_ok=True)
+    output_dir = 'frames_expansion'
+    os.makedirs(output_dir, exist_ok=True)
 
     for t in range(T):
 
@@ -72,12 +72,12 @@ def dufort_frankel(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
         sum_v = v[2:N+1, 1:N] + v[0:N-1, 1:N] + v[1:N, 2:N+1] + v[1:N, 0:N-1]
 
         # Kinetic terms
-        funu = epsilon * (u_old_c - u_old_c**3 - v_old_c + F_c)
-        funv = u_old_c - alpha * v_old_c + beta
+        react_u = epsilon * (u_old_c - u_old_c**3 - v_old_c + F_c)
+        react_v = u_old_c - alpha * v_old_c + beta
 
         # Next time level
-        u_new[1:N, 1:N] = (2.0 * deltat * funu + u_old_c * (1.0 - 2.0 * Cu) + Cu * sum_u) / (1.0 + 2.0 * Cu)
-        v_new[1:N, 1:N] = (2.0 * deltat * funv + v_old_c * (1.0 - 2.0 * Cv) + Cv * sum_v) / (1.0 + 2.0 * Cv)
+        u_new[1:N, 1:N] = (2.0 * deltat * react_u + u_old_c * (1.0 - 2.0 * Cu) + Cu * sum_u) / (1.0 + 2.0 * Cu)
+        v_new[1:N, 1:N] = (2.0 * deltat * react_v + v_old_c * (1.0 - 2.0 * Cv) + Cv * sum_v) / (1.0 + 2.0 * Cv)
 
         # Neumann boundary conditions
         u_new[0, :] = u_new[1, :]
@@ -91,7 +91,7 @@ def dufort_frankel(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
         v_new[:, -1] = v_new[:, -2]
 
         # In phase 2, force the wave generators at both corners
-        if fase == 2:
+        if phase == 2:
             u_new[5:45, 5:45] = u_max
             u_new[N-45:N-5, N-45:N-5] = u_max
             v_new[5:45, 5:45] = v_max
@@ -105,25 +105,25 @@ def dufort_frankel(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
         v = (np.copy(v_new) + v) / 2.0
 
         # Re-impose the generators after the average
-        if fase == 2:
+        if phase == 2:
             u[5:45, 5:45] = u_max
             u[N-45:N-5, N-45:N-5] = u_max
             v[5:45, 5:45] = v_max
             v[N-45:N-5, N-45:N-5] = v_max
 
         # Save a frame
-        if t % plot_cada == 0:
-            imagen.set_data(u)
+        if t % plot_every == 0:
+            image.set_data(u)
             ax.set_title(f'Time step: {t}')
-            ruta_archivo = os.path.join(carpeta_salida, f'frame_{t}.png')
-            plt.savefig(ruta_archivo)
+            frame_path = os.path.join(output_dir, f'frame_{t}.png')
+            plt.savefig(frame_path)
             print(f'Computed t={t} and frame saved.')
 
     return u, v
 
 
 def FTCS(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
-         epsilon, alpha, beta, Du, Dv, F, plot_cada, fase):
+         epsilon, alpha, beta, Du, Dv, F, plot_every, phase):
     """Integrate the FitzHugh-Nagumo system with the FTCS scheme.
 
     Used in phase 2 (retraction): starting from the phase-1 final state, the
@@ -133,7 +133,7 @@ def FTCS(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
 
     Parameters
     ----------
-    See `dufort_frankel`; here `fase` tags the retraction (2).
+    See `dufort_frankel`; here `phase` tags the retraction (2).
 
     Returns
     -------
@@ -146,16 +146,16 @@ def FTCS(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
     # Plot setup
     plt.ioff()
     fig, ax = plt.subplots(figsize=(6, 6))
-    imagen = ax.imshow(u, cmap='magma', vmin=-1.5, vmax=1.5, origin='lower')
+    image = ax.imshow(u, cmap='magma', vmin=-1.5, vmax=1.5, origin='lower')
 
     # Draw the maze walls as an overlay
-    overlay_muro = np.zeros((N + 1, N + 1, 4))
-    es_pared = (F < 0)
-    overlay_muro[es_pared] = [0.8, 0.8, 0.8, 0.8]
-    ax.imshow(overlay_muro, origin='lower')
+    wall_overlay = np.zeros((N + 1, N + 1, 4))
+    is_wall = (F < 0)
+    wall_overlay[is_wall] = [0.8, 0.8, 0.8, 0.8]
+    ax.imshow(wall_overlay, origin='lower')
 
-    carpeta_salida = 'frames_vuelta'
-    os.makedirs(carpeta_salida, exist_ok=True)
+    output_dir = 'frames_retraction'
+    os.makedirs(output_dir, exist_ok=True)
 
     for t in range(T):
 
@@ -182,11 +182,11 @@ def FTCS(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
         u = np.copy(u_new)
         v = np.copy(v_new)
 
-        if t % plot_cada == 0:
-            imagen.set_data(u)
+        if t % plot_every == 0:
+            image.set_data(u)
             ax.set_title(f'Time step: {t}')
-            ruta_archivo = os.path.join(carpeta_salida, f'frame_{t}.png')
-            plt.savefig(ruta_archivo)
+            frame_path = os.path.join(output_dir, f'frame_{t}.png')
+            plt.savefig(frame_path)
             print(f'Computed t={t} and frame saved.')
 
     return u, v

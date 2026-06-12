@@ -26,17 +26,17 @@ $$\frac{\partial v}{\partial t} = (u - \alpha v + \beta) + D_v \nabla^2 v$$
 
 | Phase | Script | Numerical scheme | What it does |
 |-------|--------|------------------|--------------|
-| 1 — Expansion | `main_ida.py` | Dufort–Frankel | Generates a solvable maze and propagates the autowave from start to exit. |
-| 2 — Retraction | `main_vuelta.py` | FTCS | Loads the phase-1 state and retracts the wave to reveal the optimal path. |
+| 1 — Expansion | `main_expansion.py` | Dufort–Frankel | Generates a solvable maze and propagates the autowave from start to exit. |
+| 2 — Retraction | `main_retraction.py` | FTCS | Loads the phase-1 state and retracts the wave to reveal the optimal path. |
 
 Core modules:
 
-- **`bucle.py`** — numerical engine (`dufort_frankel`, `FTCS`).
-- **`generar_laberinto.py`** — maze generators:
-  - `generar_laberinto_multiruta` — builds a maze with several disjoint routes
+- **`solver.py`** — numerical engine (`dufort_frankel`, `FTCS`).
+- **`maze.py`** — maze generators:
+  - `generate_maze_multiroute` — builds a maze with several disjoint routes
     (a short one and longer distractors) between opposite corners. This is the
     generator used to build the thesis dataset.
-  - `generar_laberinto_perfecto` — classic perfect maze (single path between any
+  - `generate_maze_perfect` — classic perfect maze (single path between any
     two cells) via DFS backtracking.
 
 ## Installation
@@ -48,17 +48,17 @@ pip install -r requirements.txt
 ## Usage
 
 ```bash
-# Phase 1 — expansion. Creates frames_ida/ (frames) and Matrices_ida/ (.npy state).
-python main_ida.py
+# Phase 1 — expansion. Creates frames_expansion/ and matrices_expansion/ (.npy state).
+python main_expansion.py
 
-# Phase 2 — retraction. Creates frames_vuelta/ (frames) and Matrices_vuelta/ (.npy).
-python main_vuelta.py
+# Phase 2 — retraction. Creates frames_retraction/ and matrices_retraction/ (.npy).
+python main_retraction.py
 ```
 
 You can also preview a maze on its own:
 
 ```bash
-python generar_laberinto.py
+python maze.py
 ```
 
 ## Author

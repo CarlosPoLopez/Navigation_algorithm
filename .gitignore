@@ -8,10 +8,10 @@
 *.npy
 
 # Simulation outputs
-frames_ida/
-frames_vuelta/
-Matrices_ida/
-Matrices_vuelta/
+frames_expansion/
+frames_retraction/
+matrices_expansion/
+matrices_retraction/
 
 # Editor / Jupyter junk
 .vscode/
