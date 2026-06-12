@@ -9,6 +9,18 @@ inspired alternative to classical graph search.
 > Compostela (2025–2026). A deep-learning extension (U-Net) that learns to reproduce
 > these paths in milliseconds is developed in a separate repository.
 
+## Walkthrough
+
+| Phase 1 — Expansion | |
+|:---:|:---:|
+| ![Wave seeded at the start corner](assets/expansion_start.png) | ![Wave has flooded the whole maze](assets/expansion_full.png) |
+| The autowave is seeded at the start corner. | It floods every corridor (walls block it). |
+
+| Phase 2 — Retraction | |
+|:---:|:---:|
+| ![Wave retracting along the corridors](assets/retraction_start.png) | ![Optimal path traced corner to corner](assets/retraction_path.png) |
+| The wave retracts towards both corners… | …leaving only the optimal path lit. |
+
 ## The model
 
 The system integrates the coupled reaction–diffusion PDEs:
