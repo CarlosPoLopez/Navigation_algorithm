@@ -1,6 +1,51 @@
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
+from numba import njit, prange
+
+
+# ── Numba kernels (one parallel pass per cell, no temporary arrays) ──────────
+
+@njit(parallel=True, cache=True)
+def _step_dufort_frankel(u, v, u_old, v_old, u_new, v_new,
+                         F, Cu, Cv, deltat, epsilon, alpha, beta, N):
+    for i in prange(1, N):
+        for j in range(1, N):
+            su = u[i+1, j] + u[i-1, j] + u[i, j+1] + u[i, j-1]
+            sv = v[i+1, j] + v[i-1, j] + v[i, j+1] + v[i, j-1]
+            react_u = epsilon * (u_old[i, j] - u_old[i, j]**3 - v_old[i, j] + F[i, j])
+            react_v = u_old[i, j] - alpha * v_old[i, j] + beta
+            u_new[i, j] = (2.0*deltat*react_u + u_old[i, j]*(1.0 - 2.0*Cu) + Cu*su) / (1.0 + 2.0*Cu)
+            v_new[i, j] = (2.0*deltat*react_v + v_old[i, j]*(1.0 - 2.0*Cv) + Cv*sv) / (1.0 + 2.0*Cv)
+    return u_new, v_new
+
+
+@njit(parallel=True, cache=True)
+def _step_ftcs(u, v, u_new, v_new, F,
+               deltat, inv_dx2, epsilon, alpha, beta, Du, Dv, N):
+    for i in prange(1, N):
+        for j in range(1, N):
+            lap_u = (u[i+1, j] + u[i-1, j] + u[i, j+1] + u[i, j-1] - 4.0*u[i, j]) * inv_dx2
+            lap_v = (v[i+1, j] + v[i-1, j] + v[i, j+1] + v[i, j-1] - 4.0*v[i, j]) * inv_dx2
+            u_new[i, j] = u[i, j] + deltat * (epsilon*(u[i, j] - u[i, j]**3 - v[i, j] + F[i, j]) + Du*lap_u)
+            v_new[i, j] = v[i, j] + deltat * (u[i, j] - alpha*v[i, j] + beta + Dv*lap_v)
+    return u_new, v_new
+
+
+def _save_frame(u, F, N, output_dir, t):
+    """Save a single frame: the activator field with the maze walls overlaid."""
+    os.makedirs(output_dir, exist_ok=True)
+    plt.ioff()
+    fig, ax = plt.subplots(figsize=(6, 6))
+    ax.imshow(u, cmap='magma', vmin=-1.5, vmax=1.5, origin='lower')
+    overlay = np.zeros((N + 1, N + 1, 4))
+    overlay[F < 0] = [0.8, 0.8, 0.8, 0.8]
+    ax.imshow(overlay, origin='lower')
+    ax.set_title(f'Time step: {t}')
+    fig.savefig(os.path.join(output_dir, f'frame_{t}.png'))
+    plt.close(fig)
 
 
 def dufort_frankel(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
@@ -10,7 +55,8 @@ def dufort_frankel(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
     Used in phase 1 (expansion): an autowave is launched from the start corner
     and floods the maze along the corridors. Dufort-Frankel is an explicit,
     unconditionally stable leapfrog scheme, which lets the front propagate over
-    the long times the expansion needs.
+    the long times the expansion needs. The per-step update runs as a parallel
+    Numba kernel (one pass per cell, no temporary arrays).
 
     Parameters
     ----------
@@ -29,7 +75,7 @@ def dufort_frankel(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
     F : np.ndarray
         Forcing matrix encoding the maze geometry (negative on walls).
     plot_every : int
-        Save a frame every `plot_every` steps.
+        Save a frame every `plot_every` steps (0 disables frames).
     phase : int
         Phase tag (1 = expansion); kept for symmetry with FTCS.
 
@@ -38,86 +84,51 @@ def dufort_frankel(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
     u, v : np.ndarray
         Final activator and inhibitor fields.
     """
-    u_new = np.copy(u)
-    v_new = np.copy(v)
-    u_old = np.copy(u)
-    v_old = np.copy(v)
+    u = np.ascontiguousarray(u, dtype=np.float64)
+    v = np.ascontiguousarray(v, dtype=np.float64)
+    F = np.ascontiguousarray(F, dtype=np.float64)
 
-    # Dufort-Frankel constants
+    u_old = u.copy()
+    v_old = v.copy()
+    u_new = u.copy()
+    v_new = v.copy()
+
     Cu = (2.0 * deltat * Du) / (deltax**2)
     Cv = (2.0 * deltat * Dv) / (deltax**2)
 
-    # Plot setup
-    plt.ioff()
-    fig, ax = plt.subplots(figsize=(6, 6))
-    image = ax.imshow(u, cmap='magma', vmin=-1.5, vmax=1.5, origin='lower')
-
-    # Draw the maze walls as an overlay
-    wall_overlay = np.zeros((N + 1, N + 1, 4))
-    is_wall = (F < 0)
-    wall_overlay[is_wall] = [0.8, 0.8, 0.8, 0.8]
-    ax.imshow(wall_overlay, origin='lower')
-
     output_dir = 'frames_expansion'
-    os.makedirs(output_dir, exist_ok=True)
+    if plot_every:
+        _save_frame(u, F, N, output_dir, 0)
 
     for t in range(T):
 
-        u_old_c = u_old[1:N, 1:N]
-        v_old_c = v_old[1:N, 1:N]
-        F_c = F[1:N, 1:N]
-
-        # Sum of neighbours
-        sum_u = u[2:N+1, 1:N] + u[0:N-1, 1:N] + u[1:N, 2:N+1] + u[1:N, 0:N-1]
-        sum_v = v[2:N+1, 1:N] + v[0:N-1, 1:N] + v[1:N, 2:N+1] + v[1:N, 0:N-1]
-
-        # Kinetic terms
-        react_u = epsilon * (u_old_c - u_old_c**3 - v_old_c + F_c)
-        react_v = u_old_c - alpha * v_old_c + beta
-
-        # Next time level
-        u_new[1:N, 1:N] = (2.0 * deltat * react_u + u_old_c * (1.0 - 2.0 * Cu) + Cu * sum_u) / (1.0 + 2.0 * Cu)
-        v_new[1:N, 1:N] = (2.0 * deltat * react_v + v_old_c * (1.0 - 2.0 * Cv) + Cv * sum_v) / (1.0 + 2.0 * Cv)
+        u_new, v_new = _step_dufort_frankel(
+            u, v, u_old, v_old, u_new, v_new,
+            F, Cu, Cv, deltat, epsilon, alpha, beta, N)
 
         # Neumann boundary conditions
-        u_new[0, :] = u_new[1, :]
-        u_new[-1, :] = u_new[-2, :]
-        u_new[:, 0] = u_new[:, 1]
-        u_new[:, -1] = u_new[:, -2]
+        for arr in (u_new, v_new):
+            arr[0, :] = arr[1, :]
+            arr[-1, :] = arr[-2, :]
+            arr[:, 0] = arr[:, 1]
+            arr[:, -1] = arr[:, -2]
 
-        v_new[0, :] = v_new[1, :]
-        v_new[-1, :] = v_new[-2, :]
-        v_new[:, 0] = v_new[:, 1]
-        v_new[:, -1] = v_new[:, -2]
+        # Leapfrog advance: old <- current, current <- average(current, new)
+        np.copyto(u_old, u)
+        np.copyto(v_old, v)
+        np.add(u, u_new, out=u); u *= 0.5
+        np.add(v, v_new, out=v); v *= 0.5
 
-        # In phase 2, force the wave generators at both corners
-        if phase == 2:
-            u_new[5:45, 5:45] = u_max
-            u_new[N-45:N-5, N-45:N-5] = u_max
-            v_new[5:45, 5:45] = v_max
-            v_new[N-45:N-5, N-45:N-5] = v_max
-
-        # Advance time
-        u_old = np.copy(u)
-        v_old = np.copy(v)
-
-        u = (np.copy(u_new) + u) / 2.0
-        v = (np.copy(v_new) + v) / 2.0
-
-        # Re-impose the generators after the average
+        # In phase 2, re-impose the wave generators at both corners
         if phase == 2:
             u[5:45, 5:45] = u_max
             u[N-45:N-5, N-45:N-5] = u_max
             v[5:45, 5:45] = v_max
             v[N-45:N-5, N-45:N-5] = v_max
 
-        # Save a frame
-        if t % plot_every == 0:
-            image.set_data(u)
-            ax.set_title(f'Time step: {t}')
-            frame_path = os.path.join(output_dir, f'frame_{t}.png')
-            plt.savefig(frame_path)
-            print(f'Computed t={t} and frame saved.')
+        if plot_every and (t + 1) % plot_every == 0:
+            _save_frame(u, F, N, output_dir, t + 1)
+            print(f'Computed t={t + 1} and frame saved.')
 
     return u, v
 
@@ -129,7 +140,8 @@ def FTCS(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
     Used in phase 2 (retraction): starting from the phase-1 final state, the
     wave retracts towards both corners and the surviving front traces the
     optimal path. FTCS (Forward-Time Central-Space) is a simple explicit
-    scheme, adequate for the shorter retraction stage.
+    scheme, adequate for the shorter retraction stage. The per-step update runs
+    as a parallel Numba kernel.
 
     Parameters
     ----------
@@ -140,53 +152,36 @@ def FTCS(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
     u, v : np.ndarray
         Final activator and inhibitor fields.
     """
-    u_new = np.copy(u)
-    v_new = np.copy(v)
+    u = np.ascontiguousarray(u, dtype=np.float64)
+    v = np.ascontiguousarray(v, dtype=np.float64)
+    F = np.ascontiguousarray(F, dtype=np.float64)
 
-    # Plot setup
-    plt.ioff()
-    fig, ax = plt.subplots(figsize=(6, 6))
-    image = ax.imshow(u, cmap='magma', vmin=-1.5, vmax=1.5, origin='lower')
+    u_n = u.copy()
+    v_n = v.copy()
+    u_np1 = u.copy()
+    v_np1 = v.copy()
 
-    # Draw the maze walls as an overlay
-    wall_overlay = np.zeros((N + 1, N + 1, 4))
-    is_wall = (F < 0)
-    wall_overlay[is_wall] = [0.8, 0.8, 0.8, 0.8]
-    ax.imshow(wall_overlay, origin='lower')
-
+    inv_dx2 = 1.0 / (deltax**2)
     output_dir = 'frames_retraction'
-    os.makedirs(output_dir, exist_ok=True)
 
     for t in range(T):
 
-        # Interior (everything but the borders), equivalent to range(1, N)
-        u_c = u[1:N, 1:N]
-        v_c = v[1:N, 1:N]
-        F_c = F[1:N, 1:N]
-
-        # Vectorised Laplacians
-        lap_u = (u[2:N+1, 1:N] + u[0:N-1, 1:N] + u[1:N, 2:N+1] + u[1:N, 0:N-1] - 4*u_c) / deltax**2
-        lap_v = (v[2:N+1, 1:N] + v[0:N-1, 1:N] + v[1:N, 2:N+1] + v[1:N, 0:N-1] - 4*v_c) / deltax**2
-
-        # Update the interior
-        u_new[1:N, 1:N] = u_c + deltat * (epsilon * (u_c - u_c**3 - v_c + F_c) + Du * lap_u)
-        v_new[1:N, 1:N] = v_c + deltat * (u_c - alpha * v_c + beta + Dv * lap_v)
+        u_np1, v_np1 = _step_ftcs(
+            u_n, v_n, u_np1, v_np1,
+            F, deltat, inv_dx2, epsilon, alpha, beta, Du, Dv, N)
 
         # Dirichlet generators at both corners
-        u_new[5:55, 5:55] = u_max
-        u_new[N-55:N-5, N-55:N-5] = u_max
-        v_new[5:55, 5:55] = v_max
-        v_new[N-55:N-5, N-55:N-5] = v_max
+        u_np1[5:55, 5:55] = u_max
+        u_np1[N-55:N-5, N-55:N-5] = u_max
+        v_np1[5:55, 5:55] = v_max
+        v_np1[N-55:N-5, N-55:N-5] = v_max
 
-        # Store u and v
-        u = np.copy(u_new)
-        v = np.copy(v_new)
+        # Swap buffers (no copy)
+        u_n, u_np1 = u_np1, u_n
+        v_n, v_np1 = v_np1, v_n
 
-        if t % plot_every == 0:
-            image.set_data(u)
-            ax.set_title(f'Time step: {t}')
-            frame_path = os.path.join(output_dir, f'frame_{t}.png')
-            plt.savefig(frame_path)
-            print(f'Computed t={t} and frame saved.')
+        if plot_every and (t + 1) % plot_every == 0:
+            _save_frame(u_n, F, N, output_dir, t + 1)
+            print(f'Computed t={t + 1} and frame saved.')
 
-    return u, v
+    return u_n, v_n
