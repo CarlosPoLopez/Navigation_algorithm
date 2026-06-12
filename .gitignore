@@ -1,16 +1,19 @@
-# Ignorar el entorno virtual
+# Virtual environment
 .venv/
 
-# Ignorar datos pesados
+# Heavy data
 *.csv
 *.pt
 *.pth
+*.npy
 
-# Ignorar archivos basura de VS Code y Jupyter
+# Simulation outputs
+frames_ida/
+frames_vuelta/
+Matrices_ida/
+Matrices_vuelta/
+
+# Editor / Jupyter junk
 .vscode/
 .ipynb_checkpoints/
 __pycache__/
-
-#Ignorar los scripts .sh para el CESGA
-Otros/.sh
-

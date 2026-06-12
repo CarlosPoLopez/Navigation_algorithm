@@ -1,36 +1,67 @@
-# Resolución de Laberintos mediante Sistemas de Reacción-Difusión (Modelo FitzHugh-Nagumo)
+# Maze Solving with Reaction–Diffusion Systems (FitzHugh–Nagumo)
 
-Este proyecto implementa una simulación numérica en Python del modelo de reacción-difusión de **FitzHugh-Nagumo (FHN)**. El sistema utiliza la difusión del estado más estable en el sistema para inundar el laberinto y, posteriormente, identificar el camino más corto mediante el cambio de estabilidad en el sistema.
-##  Contexto Básico
+A pure-NumPy numerical simulation of the **FitzHugh–Nagumo (FHN)** reaction–diffusion
+model used to solve mazes. A travelling wave (autowave) floods the maze from the
+start, and a second retracting wave traces the shortest path back — a biologically
+inspired alternative to classical graph search.
 
-La simulación resuelve el siguiente sistema de ecuaciones diferenciales parciales:
+> Part of my Physics Bachelor's Thesis (TFG) at the University of Santiago de
+> Compostela (2025–2026). A deep-learning extension (U-Net) that learns to reproduce
+> these paths in milliseconds is developed in a separate repository.
+
+## The model
+
+The system integrates the coupled reaction–diffusion PDEs:
 
 $$\frac{\partial u}{\partial t} = \epsilon (u - u^3 - v + F) + D_u \nabla^2 u$$
+
 $$\frac{\partial v}{\partial t} = (u - \alpha v + \beta) + D_v \nabla^2 v$$
 
-Donde:
-* **Matriz $F$:** Representa la geometría del laberinto, actuando como un término de fuerza que "apaga" la variable activadora en las paredes.
+- **`u`** — activator (the propagating wavefront).
+- **`v`** — inhibitor.
+- **`F`** — forcing matrix encoding the maze geometry: it suppresses the activator on
+  walls, so the wave can only travel along corridors.
 
-##  Estructura del Proyecto
+## How it works
 
-El repositorio está organizado de la siguiente manera:
+| Phase | Script | Numerical scheme | What it does |
+|-------|--------|------------------|--------------|
+| 1 — Expansion | `main_ida.py` | Dufort–Frankel | Generates a solvable maze and propagates the autowave from start to exit. |
+| 2 — Retraction | `main_vuelta.py` | FTCS | Loads the phase-1 state and retracts the wave to reveal the optimal path. |
 
-* **`main_ida.py`**: Script para la **Fase 1 (Expansión)**. Genera el laberinto y lanza la onda desde el origen hasta la salida.
-* **`main_vuelta.py`**: Script para la **Fase 2 (Retracción)**. Carga el estado final de la Fase 1 y calcula el camino óptimo.
-* **`bucle.py`**: Motor numérico híbrido. Implementa los métodos de **Dufort-Frankel** (para la expansión) y **FTCS** (para la retracción).
-* **`generar_laberinto.py`**: Biblioteca con funciones para crear diferentes tipos de obstáculos y geometrías.
+Core modules:
 
+- **`bucle.py`** — numerical engine (`dufort_frankel`, `FTCS`).
+- **`generar_laberinto.py`** — maze generators:
+  - `generar_laberinto_multiruta` — builds a maze with several disjoint routes
+    (a short one and longer distractors) between opposite corners. This is the
+    generator used to build the thesis dataset.
+  - `generar_laberinto_perfecto` — classic perfect maze (single path between any
+    two cells) via DFS backtracking.
 
-##  Instalación y Uso
+## Installation
 
-1. **Requisitos**: Instala las dependencias necesarias:
-   ```bash
-   pip install -r requirements.txt
-2. **Fase 1**: Ejecuta el script de ida para generar el laberinto y propagar la autoonda. Se crearán las carpetas `/LAB_ida` (fotogramas) y `/Matrices_ida` (datos .npy para la siguiente fase):
-   ```basch
-   python main_ida.py
-3. **Fase 2**: Una vez finalizada la fase anterior, ejecuta el script de vuelta para hallar el camino más corto. Se crearán las carpetas `/LAB_vuelta` (fotogramas) y `/Matrices_vuelta` (datos .npy):
-   ```basch
-   python main_vuelta.py
-   
-   
+```bash
+pip install -r requirements.txt
+```
+
+## Usage
+
+```bash
+# Phase 1 — expansion. Creates frames_ida/ (frames) and Matrices_ida/ (.npy state).
+python main_ida.py
+
+# Phase 2 — retraction. Creates frames_vuelta/ (frames) and Matrices_vuelta/ (.npy).
+python main_vuelta.py
+```
+
+You can also preview a maze on its own:
+
+```bash
+python generar_laberinto.py
+```
+
+## Author
+
+**Carlos Polo López** — BSc Physics, University of Santiago de Compostela.
+Supervised by Alberto Pérez Muñuzuri and David García Selfa.
