@@ -3,7 +3,7 @@ import time
 import os
 from solver import FTCS
 
-# Load the phase-1 final state
+# Load the phase 1 final state
 F_matrix = np.load('matrices_expansion/maze_F.npy')
 u_init = np.load('matrices_expansion/state_u.npy')
 v_init = np.load('matrices_expansion/state_v.npy')

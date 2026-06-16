@@ -6,7 +6,7 @@ import os
 from numba import njit, prange
 
 
-# ── Numba kernels (one parallel pass per cell, no temporary arrays) ──────────
+# ── Numba kernels (one parallel pass per cell, no temporary arrays) ─────────
 
 @njit(parallel=True, cache=True)
 def _step_dufort_frankel(u, v, u_old, v_old, u_new, v_new,

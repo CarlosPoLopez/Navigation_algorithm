@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# ── Helper: exact grid size ──────────────────────────────────────────────────
+# ── Helper: exact grid size ─────────────────────────────────────────────────
 
 def exact_dimx(n_cells, cell_size, wall_thickness=3):
     """Return the exact array size so the cell grid fits with no leftover border.

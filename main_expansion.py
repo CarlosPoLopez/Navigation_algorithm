@@ -7,9 +7,9 @@ from collections import deque
 
 
 def maze_has_solution(matrix, start, end):
-    """Quickly check whether a corridor path (zeros) exists from start to end.
+    """Quickly check whether a corridor path (zeros) exists from start to end
 
-    Uses BFS over 4-connectivity, treating 0 as corridor and 1 as wall.
+    Uses BFS over 4-connectivity, treating 0 as corridor and 1 as wall
     """
     n_rows, n_cols = matrix.shape
     visited = set()
