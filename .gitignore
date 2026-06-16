@@ -13,7 +13,7 @@ frames_retraction/
 matrices_expansion/
 matrices_retraction/
 
-# Editor / Jupyter junk
+# Editor , Jupyter junk
 .vscode/
 .ipynb_checkpoints/
 __pycache__/
