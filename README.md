@@ -1,7 +1,7 @@
 # Maze Solving with Reaction–Diffusion Systems (FitzHugh–Nagumo)
 
 A NumPy + Numba numerical simulation of the **FitzHugh–Nagumo (FHN)** reaction–diffusion
-model used to solve mazes. A travelling wave (autowave) floods the maze from the
+model used to find the shortest path between two points. A travelling wave (autowave) floods the maze from the
 start, and a second retracting wave traces the shortest path back — a biologically
 inspired alternative to classical graph search.
 
