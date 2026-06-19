@@ -6,6 +6,7 @@
 *.pt
 *.pth
 *.npy
+*.tif
 
 # Simulation outputs
 frames_expansion/

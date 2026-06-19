@@ -49,7 +49,9 @@ def _save_frame(u, F, N, output_dir, t):
 
 
 def dufort_frankel(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
-                   epsilon, alpha, beta, Du, Dv, F, plot_every, phase):
+                   epsilon, alpha, beta, Du, Dv, F, plot_every, phase,
+                   stop_at_exit=True, exit_threshold=0.0, check_every=200,
+                   exit_margin=0):
     """Integrate the FitzHugh-Nagumo system with the Dufort-Frankel scheme.
 
     Used in phase 1 (expansion): an autowave is launched from the start corner
@@ -78,6 +80,18 @@ def dufort_frankel(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
         Save a frame every `plot_every` steps (0 disables frames).
     phase : int
         Phase tag (1 = expansion); kept for symmetry with FTCS.
+    stop_at_exit : bool
+        If True, stop the integration early once the wave front reaches the
+        exit corner instead of always running the full T steps. Useful in
+        phase 1, where the maze is already flooded long before T is reached.
+    exit_threshold : float
+        Activator level above which the exit corner is considered reached
+        (the resting state is u_min < 0, so 0.0 is a safe default).
+    check_every : int
+        How often, in steps, to check whether the front has reached the exit.
+    exit_margin : int
+        Extra steps to keep integrating after the front is first detected at
+        the exit, before actually stopping.
 
     Returns
     -------
@@ -99,6 +113,11 @@ def dufort_frankel(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
     output_dir = 'frames_expansion'
     if plot_every:
         _save_frame(u, F, N, output_dir, 0)
+
+    # Exit corner, symmetric to the start corner where the wave is seeded.
+    # Watched only when stop_at_exit is enabled.
+    exit_region = (slice(N - 55, N - 5), slice(N - 55, N - 5))
+    stop_step = None  # set once the front is first detected at the exit
 
     for t in range(T):
 
@@ -125,6 +144,16 @@ def dufort_frankel(u, v, u_max, v_max, u_min, v_min, deltat, deltax, N, T,
             u[N-45:N-5, N-45:N-5] = u_max
             v[5:45, 5:45] = v_max
             v[N-45:N-5, N-45:N-5] = v_max
+
+        # Early stop once the wave front reaches the exit corner: avoids
+        # running the remaining steps once the maze is already flooded.
+        if stop_at_exit:
+            if stop_step is None and (t + 1) % check_every == 0:
+                if u[exit_region].max() > exit_threshold:
+                    stop_step = t + exit_margin
+            if stop_step is not None and t >= stop_step:
+                print(f'Front reached the exit: stopping at step {t + 1}/{T}')
+                break
 
         if plot_every and (t + 1) % plot_every == 0:
             _save_frame(u, F, N, output_dir, t + 1)

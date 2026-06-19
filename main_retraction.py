@@ -16,7 +16,7 @@ phase = 2
 
 deltat = 0.002
 deltax = 0.25
-epsilon, alpha, beta, Du, Dv = 10.0, 5.0, 0.1, 1, 5.0
+epsilon, alpha, beta, Du, Dv = 10.0, 5.0, 0.1, 0.6, 5.0
 
 u_min, u_max, v_min, v_max = -0.6505, 0.877, -0.3752, 0.197
 
