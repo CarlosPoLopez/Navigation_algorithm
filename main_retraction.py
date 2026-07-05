@@ -10,7 +10,7 @@ v_init = np.load('matrices_expansion/state_v.npy')
 
 # Derive the grid size from the loaded fields so it matches phase 1
 N = F_matrix.shape[0] - 1
-T = 180000
+T = 240000
 plot_every = 20000
 phase = 2
 
@@ -36,3 +36,12 @@ np.save('matrices_retraction/state_u.npy', u_final)
 np.save('matrices_retraction/state_v.npy', v_final)
 np.save('matrices_retraction/maze_F.npy', F_matrix)
 print("Saved! .npy files generated.")
+
+# Also save a CNN-ready training sample for Part 2 (Navigation_CNN): the maze field F and
+# the solution field u packed into one .npz, with the keys ('maze', 'solution') and the
+# sample_<id>.npz naming that its data loader expects. SLURM_ARRAY_TASK_ID, if set, gives
+# each run of a batch a unique id.
+os.makedirs('dataset', exist_ok=True)
+sample_id = os.environ.get('SAMPLE_ID') or os.environ.get('SLURM_ARRAY_TASK_ID', '0')
+np.savez_compressed(f'dataset/sample_{sample_id}.npz', maze=F_matrix, solution=u_final)
+print(f"Saved! dataset/sample_{sample_id}.npz")

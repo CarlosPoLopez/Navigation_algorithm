@@ -62,19 +62,47 @@ pip install -r requirements.txt
 
 ## Usage
 
-```bash
-# Phase 1 — expansion. Creates frames_expansion/ and matrices_expansion/ (.npy state).
-python main_expansion.py
+There are two ways to use this repository: **watch the algorithm solve a single maze**, or
+**generate a dataset** of solved mazes to train Part 2.
 
-# Phase 2 — retraction. Creates frames_retraction/ and matrices_retraction/ (.npy).
-python main_retraction.py
-```
-
-You can also preview a maze on its own:
+### 1. Solve and visualize one maze (default)
 
 ```bash
-python maze.py
+# Phase 1 — expansion: generate a random maze and flood it with the autowave.
+python main_expansion.py     # -> matrices_expansion/*.npy , frames_expansion/*.png
+
+# Phase 2 — retraction: retract the wave to reveal the optimal path.
+python main_retraction.py    # -> matrices_retraction/*.npy , frames_retraction/*.png ,
+                             #    dataset/sample_0.npz
 ```
+
+The solver saves a frame image every `plot_every` steps (set at the top of each `main_*.py`)
+into `frames_expansion/` and `frames_retraction/` — flip through them to watch the wave
+propagate and retract. You can also preview a maze on its own with `python maze.py`.
+
+### 2. Generate a dataset for Part 2
+
+Each run of `main_expansion.py` builds a **new random maze**, so running the two phases
+repeatedly produces a varied dataset. Phase 2 writes `dataset/sample_<id>.npz` with keys
+`maze` (field F, `< 0` = wall) and `solution` (final field u) — the exact format consumed by
+**Part 2**, the U-Net that learns to solve mazes:
+[Navigation_CNN](https://github.com/CarlosPoLopez/Navigation_CNN).
+
+For this, first **set `plot_every = 0`** at the top of `main_expansion.py` and
+`main_retraction.py` to skip the frame images (much faster, no disk clutter). Then loop,
+giving each sample a unique id via `SAMPLE_ID`:
+
+```bash
+for i in $(seq 0 999); do
+    python main_expansion.py
+    SAMPLE_ID=$i python main_retraction.py
+done
+# -> dataset/sample_0.npz ... dataset/sample_999.npz
+```
+
+On a cluster, submit a SLURM array instead: `main_retraction.py` also picks up
+`SLURM_ARRAY_TASK_ID` as the sample id. Parallel array tasks must not share the
+`matrices_expansion/` scratch files, so run each task in its own working directory.
 
 ## Author
 

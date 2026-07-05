@@ -45,7 +45,7 @@ n_cells = 9
 dimx = exact_dimx(n_cells=n_cells, cell_size=cell_size, wall_thickness=wall_thickness)
 
 N = dimx - 1
-T = 800000
+T = 3000000
 plot_every = 20000
 phase = 1
 
